@@ -156,7 +156,7 @@ def get_input_fn(
         "label": tf.FixedLenFeature([1], tf.int64)
     }
     sup_file_list = [os.path.join(data_dir, filename)]
-    tf.logging.info("getting supervised dataset from {} file prefixes".format(
+    tf.compat.v1.logging.info("getting supervised dataset from {} file prefixes".format(
         len(sup_file_list)))
     sup_dataset = get_dataset(
         file_prefix_list=sup_file_list,
@@ -175,7 +175,7 @@ def get_input_fn(
       }
       aug_file_list = [
           os.path.join(data_dir, format_unsup_filename(i)) for i in range(aug_copy)]
-      tf.logging.info(
+      tf.compat.v1.logging.info(
           "getting unsupervised dataset from {} file prefixes".format(
               len(aug_file_list))
       )

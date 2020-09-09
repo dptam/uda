@@ -111,7 +111,7 @@ def save_tfrecord(example_list, out_path, max_shard_size=4096):
     shard_size += 1
     record_writer.write(example.SerializeToString())
   record_writer.close()
-  tf.logging.info("saved {} examples to {}".format(len(example_list), out_path))
+  tf.compat.v1.logging.info("saved {} examples to {}".format(len(example_list), out_path))
 
 
 def save_merged_data(images, labels, split, merge_folder):
@@ -133,9 +133,9 @@ def download_and_extract():
           split, field))):
         all_exist = False
   if all_exist:
-    tf.logging.info("found all merged files")
+    tf.compat.v1.logging.info("found all merged files")
     return
-  tf.logging.info("downloading dataset")
+  tf.compat.v1.logging.info("downloading dataset")
   tf.io.gfile.MakeDirs(download_folder)
   tf.io.gfile.MakeDirs(merge_folder)
   if FLAGS.task_name == "cifar10":
@@ -245,7 +245,7 @@ def process_and_save_sup_data(chosen_images, chosen_labels, split, sup_size=-1):
       FLAGS.output_base_dir,
       format_sup_filename(split, sup_size)
   )
-  tf.logging.info(">> saving {} {} examples to {}".format(
+  tf.compat.v1.logging.info(">> saving {} {} examples to {}".format(
       len(example_list), split, out_path))
   save_tfrecord(example_list, out_path)
 
@@ -276,7 +276,7 @@ def proc_and_dump_unsup_data(sub_set_data, aug_copy_num):
   np.random.shuffle(image_idx)
   ori_images = ori_images[image_idx]
 
-  # tf.logging.info("first 5 indexes after shuffling: {}".format(
+  # tf.compat.v1.logging.info("first 5 indexes after shuffling: {}".format(
   #     str(image_idx[:5])))
 
   ori_images = ori_images / 255.0
@@ -319,24 +319,24 @@ def main(unused_argv):
 
   data = load_dataset()
   if FLAGS.data_type == "sup":
-    tf.logging.info("***** Processing supervised data *****")
+    tf.compat.v1.logging.info("***** Processing supervised data *****")
     # process training set
     proc_and_dump_sup_data(data["train"], "train", sup_size=FLAGS.sup_size)
     # process test set
     proc_and_dump_sup_data(data["test"], "test")
   elif FLAGS.data_type == "unsup":
-    tf.logging.info("***** Processing unsupervised data *****")
+    tf.compat.v1.logging.info("***** Processing unsupervised data *****")
     # Just to make sure that different tfrecord files do not have data stored
     # in the same order. Since we read several tfrecord files in parallel, if
     # different tfrecord files have the same order, it is more probable that
     # multiple augmented examples of the same original example appear in the same
     # mini-batch.
-    tf.logging.info(
+    tf.compat.v1.logging.info(
         "using random seed {:d} for shuffling data".format(random_seed))
     np.random.seed(random_seed)
     for aug_copy_num in range(
         FLAGS.aug_copy_start, FLAGS.aug_copy_start + FLAGS.aug_copy):
-      tf.logging.info(
+      tf.compat.v1.logging.info(
           ">> processing aug copy # {}".format(aug_copy_num))
       proc_and_dump_unsup_data(data["train"], aug_copy_num)
 
@@ -371,5 +371,5 @@ if __name__ == "__main__":
   flags.DEFINE_integer(
       "aug_copy_start", 0, "The index of the first augmented copy.")
 
-  tf.logging.set_verbosity(tf.logging.INFO)
+  tf.compat.v1.logging.set_verbosity(tf.compat.v1.logging.INFO)
   tf.app.run(main)

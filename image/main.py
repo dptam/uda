@@ -391,13 +391,13 @@ def get_model_fn(hparams):
 
     #### Check model parameters
     num_params = sum([np.prod(v.shape) for v in tf.trainable_variables()])
-    tf.logging.info("#params: {}".format(num_params))
+    tf.compat.v1.logging.info("#params: {}".format(num_params))
 
     if FLAGS.verbose:
       format_str = "{{:<{0}s}}\t{{}}".format(
           max([len(v.name) for v in tf.trainable_variables()]))
       for v in tf.trainable_variables():
-        tf.logging.info(format_str.format(v.name, v.get_shape()))
+        tf.compat.v1.logging.info(format_str.format(v.name, v.get_shape()))
     if FLAGS.moving_average_decay > 0.:
       ema = tf.train.ExponentialMovingAverage(
           decay=FLAGS.moving_average_decay)
@@ -566,33 +566,33 @@ def train(hparams):
 
   #### Training
   if FLAGS.dev_size != -1:
-    tf.logging.info("***** Running training and validation *****")
-    tf.logging.info("  Supervised batch size = %d", FLAGS.train_batch_size)
-    tf.logging.info("  Unsupervised batch size = %d",
+    tf.compat.v1.logging.info("***** Running training and validation *****")
+    tf.compat.v1.logging.info("  Supervised batch size = %d", FLAGS.train_batch_size)
+    tf.compat.v1.logging.info("  Unsupervised batch size = %d",
                     FLAGS.train_batch_size * FLAGS.unsup_ratio)
-    tf.logging.info("  Num train steps = %d", FLAGS.train_steps)
+    tf.compat.v1.logging.info("  Num train steps = %d", FLAGS.train_steps)
     curr_step = 0
     while True:
       if curr_step >= FLAGS.train_steps:
         break
-      tf.logging.info("Current step {}".format(curr_step))
+      tf.compat.v1.logging.info("Current step {}".format(curr_step))
       train_step = min(FLAGS.save_steps, FLAGS.train_steps - curr_step)
       estimator.train(input_fn=train_input_fn, steps=train_step)
       estimator.evaluate(input_fn=eval_input_fn, steps=eval_steps)
       curr_step += FLAGS.save_steps
   else:
     if FLAGS.do_train:
-      tf.logging.info("***** Running training *****")
-      tf.logging.info("  Supervised batch size = %d", FLAGS.train_batch_size)
-      tf.logging.info("  Unsupervised batch size = %d",
+      tf.compat.v1.logging.info("***** Running training *****")
+      tf.compat.v1.logging.info("  Supervised batch size = %d", FLAGS.train_batch_size)
+      tf.compat.v1.logging.info("  Unsupervised batch size = %d",
                       FLAGS.train_batch_size * FLAGS.unsup_ratio)
       estimator.train(input_fn=train_input_fn, max_steps=FLAGS.train_steps)
     if FLAGS.do_eval:
-      tf.logging.info("***** Running evaluation *****")
+      tf.compat.v1.logging.info("***** Running evaluation *****")
       results = estimator.evaluate(input_fn=eval_input_fn, steps=eval_steps)
-      tf.logging.info(">> Results:")
+      tf.compat.v1.logging.info(">> Results:")
       for key in results.keys():
-        tf.logging.info("  %s = %s", key, str(results[key]))
+        tf.compat.v1.logging.info("  %s = %s", key, str(results[key]))
         results[key] = results[key].item()
       acc = results["eval/classify_accuracy"]
       with tf.io.gfile.Open("{}/results.txt".format(FLAGS.model_dir), "w") as ouf:
@@ -629,5 +629,5 @@ def main(_):
 
 
 if __name__ == "__main__":
-  tf.logging.set_verbosity(tf.logging.INFO)
+  tf.compat.v1.logging.set_verbosity(tf.compat.v1.logging.INFO)
   tf.app.run()

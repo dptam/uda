@@ -64,7 +64,7 @@ def get_trans_list():
 
 def randaug_policies():
   trans_list = get_trans_list()
-  tf.logging.info("trans_list: %s", str(trans_list))
+  tf.compat.v1.logging.info("trans_list: %s", str(trans_list))
   op_list = []
   for trans in trans_list:
     for magnitude in range(1, 10):

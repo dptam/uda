@@ -287,8 +287,8 @@ def _is_punctuation(char):
 
 def _convert_to_unicode_or_throw(text):
   """Converts `text` to Unicode (if it's not already), assuming utf-8 input."""
-  if isinstance(text, str):
-    text = text.decode("utf-8", "ignore")
+  # if isinstance(text, str):
+  #   text = text.decode("utf-8", "ignore")
   if not isinstance(text, unicode):
     raise ValueError("`text` must be of type `unicode` or `str`, but is "
                      "actually of type: %s" % (type(text).__name__))

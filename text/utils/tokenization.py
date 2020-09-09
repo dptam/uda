@@ -30,20 +30,42 @@ def open_reader(input_file, encoding="utf-8"):
   return codecs.getreader(encoding)(tf.io.gfile.GFile(input_file, "r"))
 
 
+# def load_vocab(vocab_file):
+#   """Loads a vocabulary file into a dictionary."""
+#   vocab = collections.OrderedDict()
+#   index = 0
+#   with open_reader(vocab_file) as reader:
+#     while True:
+#       token = reader.readline()
+#       if not token:
+#         break
+#       token = token.strip()
+#       vocab[token] = index
+#       index += 1
+#   return vocab
+
 def load_vocab(vocab_file):
   """Loads a vocabulary file into a dictionary."""
   vocab = collections.OrderedDict()
+
   index = 0
-  with open_reader(vocab_file) as reader:
-    while True:
-      token = reader.readline()
-      if not token:
-        break
-      token = token.strip()
+  with open(vocab_file, 'r') as f:
+    for line in f.readline():
+      token = line.strip('\t')
       vocab[token] = index
       index += 1
   return vocab
 
+  # index = 0
+  # with open_reader(vocab_file) as reader:
+  #   while True:
+  #     token = reader.readline()
+  #     if not token:
+  #       break
+  #     token = token.strip()
+  #     vocab[token] = index
+  #     index += 1
+  # return vocab
 
 def convert_tokens_to_ids(vocab, tokens):
   """Converts a sequence of tokens into ids using the vocab."""

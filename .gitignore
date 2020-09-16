@@ -1,3 +1,5 @@
+text/pretrained_models
+text/data
 *.idea*
 *.pyc
 *ckpt*

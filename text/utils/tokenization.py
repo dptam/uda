@@ -50,8 +50,8 @@ def load_vocab(vocab_file):
 
   index = 0
   with open(vocab_file, 'r') as f:
-    for line in f.readline():
-      token = line.strip('\t')
+    for line in f.readlines():
+      token = line.strip('\n')
       vocab[token] = index
       index += 1
   return vocab
@@ -289,7 +289,7 @@ def _convert_to_unicode_or_throw(text):
   """Converts `text` to Unicode (if it's not already), assuming utf-8 input."""
   # if isinstance(text, str):
   #   text = text.decode("utf-8", "ignore")
-  if not isinstance(text, unicode):
+  if not isinstance(text, str):
     raise ValueError("`text` must be of type `unicode` or `str`, but is "
                      "actually of type: %s" % (type(text).__name__))
   return text

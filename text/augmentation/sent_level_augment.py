@@ -81,7 +81,6 @@ def back_translation(examples, aug_ops, sub_set, aug_copy_num,
       temp, aug_copy_num)
   tf.compat.v1.logging.info("Using back translation file: {:s}".format(
       back_translation_file))
-
   with tf.compat.v1.gfile.Open(back_translation_file) as inf:
     paraphrases = inf.readlines()
   for i in range(len(paraphrases)):
@@ -118,10 +117,11 @@ def back_translation(examples, aug_ops, sub_set, aug_copy_num,
         label=ori_example.label)
     aug_examples += [example]
     if np.random.random() < 0.0001:
-      tf.compat.v1.logging.info("\tori:\n\t\t{:s}\n\t\t{:s}\n\t\t{:s}\n".format(
-          ori_example.text_a, ori_example.text_b, ori_example.label))
-      tf.compat.v1.logging.info("\tnew:\n\t\t{:s}\n\t\t{:s}\n\t\t{:s}\n".format(
-          example.text_a, example.text_b, example.label))
+      print(ori_example.text_a, ori_example.text_b, ori_example.label)
+      # tf.compat.v1.logging.info("\tori:\n\t\t{:s}\n\t\t{:s}\n\t\t{:s}\n".format(
+      #     ori_example.text_a, ori_example.text_b, ori_example.label))
+      # tf.compat.v1.logging.info("\tnew:\n\t\t{:s}\n\t\t{:s}\n\t\t{:s}\n".format(
+      #     example.text_a, example.text_b, example.label))
     if i % 10000 == 0:
       print("processing example # {:d}".format(i))
   tf.compat.v1.logging.info("applied back translation for {:.1f} percent of data".format(

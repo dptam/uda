@@ -266,10 +266,7 @@ def convert_examples_to_features(
       # st = " ".join([str(x) for x in tokens])
       st = ""
       for x in tokens:
-        if isinstance(x, unicode):
-          st += x.encode("ascii", "replace") + " "
-        else:
-          st += str(x) + " "
+        st += str(x) + " "
       tf.compat.v1.logging.info("tokens: %s" % st)
       tf.compat.v1.logging.info("input_ids: %s" % " ".join([str(x) for x in input_ids]))
       tf.compat.v1.logging.info("input_mask: %s" % " ".join([str(x) for x in input_mask]))
@@ -279,6 +276,7 @@ def convert_examples_to_features(
 
     features.append(
         InputFeatures(
+            text=example.text_a,
             input_ids=input_ids,
             input_mask=input_mask,
             input_type_ids=input_type_ids,
@@ -290,11 +288,15 @@ def _create_int_feature(values):
   feature = tf.train.Feature(int64_list=tf.train.Int64List(value=list(values)))
   return feature
 
+def _create_byte_feature(str):
+  feature = tf.train.Feature(bytes_list=tf.train.BytesList(value=[str]))
+  return feature
 
 class InputFeatures(object):
   """A single set of features of data."""
 
-  def __init__(self, input_ids, input_mask, input_type_ids, label_id):
+  def __init__(self, text, input_ids, input_mask, input_type_ids, label_id):
+    self.text = text
     self.input_ids = input_ids
     self.input_mask = input_mask
     self.input_type_ids = input_type_ids
@@ -302,6 +304,7 @@ class InputFeatures(object):
 
   def get_dict_features(self):
     return {
+        "text": self.text,
         "input_ids": _create_int_feature(self.input_ids),
         "input_mask": _create_int_feature(self.input_mask),
         "input_type_ids": _create_int_feature(self.input_type_ids),
@@ -312,20 +315,24 @@ class InputFeatures(object):
 class PairedUnsupInputFeatures(object):
   """Features for paired unsup data."""
 
-  def __init__(self, ori_input_ids, ori_input_mask, ori_input_type_ids,
-               aug_input_ids, aug_input_mask, aug_input_type_ids):
+  def __init__(self, ori_text, ori_input_ids, ori_input_mask, ori_input_type_ids,
+               aug_text, aug_input_ids, aug_input_mask, aug_input_type_ids):
+    self.ori_text = ori_text
     self.ori_input_ids = ori_input_ids
     self.ori_input_mask = ori_input_mask
     self.ori_input_type_ids = ori_input_type_ids
+    self.aug_text = aug_text
     self.aug_input_ids = aug_input_ids
     self.aug_input_mask = aug_input_mask
     self.aug_input_type_ids = aug_input_type_ids
 
   def get_dict_features(self):
     return {
+        "ori_text": self.ori_text,
         "ori_input_ids": _create_int_feature(self.ori_input_ids),
         "ori_input_mask": _create_int_feature(self.ori_input_mask),
         "ori_input_type_ids": _create_int_feature(self.ori_input_type_ids),
+        "aug_text": self.aug_text,
         "aug_input_ids": _create_int_feature(self.aug_input_ids),
         "aug_input_mask": _create_int_feature(self.aug_input_mask),
         "aug_input_type_ids": _create_int_feature(self.aug_input_type_ids),
@@ -333,34 +340,74 @@ class PairedUnsupInputFeatures(object):
 
 
 def obtain_tfrecord_writer(data_path, worker_id, shard_cnt):
-  tfrecord_writer = tf.python_io.TFRecordWriter(
+  tfrecord_writer = tf.compat.v1.python_io.TFRecordWriter(
       os.path.join(
           data_path,
           "tf_examples.tfrecord.{:d}.{:d}".format(worker_id, shard_cnt)))
   return tfrecord_writer
 
 
+def write_list(out_file, list):
+    for l in list[:-1]:
+        out_file.write(str(l) + ' ')
+    out_file.write(str(list[-1]))
+
+
 def dump_tfrecord(features, data_path, worker_id=None, max_shard_size=4096):
   """Dump tf record."""
-  if not tf.io.gfile.Exists(data_path):
-    tf.io.gfile.MakeDirs(data_path)
+  if not os.path.exists(data_path):
+    tf.io.gfile.makedirs(data_path)
   tf.compat.v1.logging.info("dumping TFRecords")
   np.random.shuffle(features)
   shard_cnt = 0
   shard_size = 0
   tfrecord_writer = obtain_tfrecord_writer(data_path, worker_id, shard_cnt)
-  for feature in features:
-    tf_example = tf.train.Example(
-        features=tf.train.Features(feature=feature.get_dict_features()))
-    if shard_size >= max_shard_size:
-      tfrecord_writer.close()
-      shard_cnt += 1
-      tfrecord_writer = obtain_tfrecord_writer(data_path, worker_id, shard_cnt)
-      shard_size = 0
-    shard_size += 1
-    tfrecord_writer.write(tf_example.SerializeToString())
-  tfrecord_writer.close()
 
+  out_file = open(os.path.join(data_path, "data.txt"), 'w+')
+
+  for feature in features:
+
+    if "unsup" in data_path:
+      out_file.write(feature.ori_text)
+      out_file.write('\t')
+      write_list(out_file, feature.ori_input_ids)
+      out_file.write('\t')
+      write_list(out_file, feature.ori_input_mask)
+      out_file.write('\t')
+      write_list(out_file, feature.ori_input_type_ids)
+      out_file.write('\t')
+      out_file.write(feature.aug_text)
+      out_file.write('\t')
+      write_list(out_file, feature.aug_input_ids)
+      out_file.write('\t')
+      write_list(out_file, feature.aug_input_mask)
+      out_file.write('\t')
+      write_list(out_file, feature.aug_input_type_ids)
+      out_file.write('\t')
+      out_file.write('\n')
+    else:
+      out_file.write(feature.text)
+      out_file.write('\t')
+      write_list(out_file, feature.input_ids)
+      out_file.write('\t')
+      write_list(out_file, feature.input_mask)
+      out_file.write('\t')
+      write_list(out_file, feature.input_type_ids)
+      out_file.write('\t')
+      out_file.write(str(feature.label_id))
+      out_file.write('\n')
+    # tf_example = tf.train.Example(
+    #     features=tf.train.Features(feature=feature.get_dict_features()))
+  #
+  #   if shard_size >= max_shard_size:
+  #     tfrecord_writer.close()
+  #     shard_cnt += 1
+  #     tfrecord_writer = obtain_tfrecord_writer(data_path, worker_id, shard_cnt)
+  #     shard_size = 0
+  #   shard_size += 1
+  #   tfrecord_writer.write(tf_example.SerializeToString())
+  # tfrecord_writer.close()
+  #
 
 def get_data_by_size_lim(train_examples, processor, sup_size):
   """Deterministicly get a dataset with only sup_size examples."""
@@ -515,9 +562,11 @@ def proc_and_save_unsup_data(
   unsup_features = []
   for ori_feat, aug_feat in zip(ori_features, aug_features):
     unsup_features.append(PairedUnsupInputFeatures(
+        ori_feat.text,
         ori_feat.input_ids,
         ori_feat.input_mask,
         ori_feat.input_type_ids,
+        aug_feat.text,
         aug_feat.input_ids,
         aug_feat.input_mask,
         aug_feat.input_type_ids,

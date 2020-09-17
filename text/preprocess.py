@@ -362,38 +362,38 @@ def dump_tfrecord(features, data_path, worker_id=None, max_shard_size=4096):
   shard_cnt = 0
   shard_size = 0
   tfrecord_writer = obtain_tfrecord_writer(data_path, worker_id, shard_cnt)
-
+  splitter = "||\t||"
   out_file = open(os.path.join(data_path, "data.txt"), 'w+')
 
   for feature in features:
 
     if "unsup" in data_path:
       out_file.write(feature.ori_text)
-      out_file.write('\t')
+      out_file.write(splitter)
       write_list(out_file, feature.ori_input_ids)
-      out_file.write('\t')
+      out_file.write(splitter)
       write_list(out_file, feature.ori_input_mask)
-      out_file.write('\t')
+      out_file.write(splitter)
       write_list(out_file, feature.ori_input_type_ids)
-      out_file.write('\t')
+      out_file.write(splitter)
       out_file.write(feature.aug_text)
-      out_file.write('\t')
+      out_file.write(splitter)
       write_list(out_file, feature.aug_input_ids)
-      out_file.write('\t')
+      out_file.write(splitter)
       write_list(out_file, feature.aug_input_mask)
-      out_file.write('\t')
+      out_file.write(splitter)
       write_list(out_file, feature.aug_input_type_ids)
-      out_file.write('\t')
+      out_file.write(splitter)
       out_file.write('\n')
     else:
       out_file.write(feature.text)
-      out_file.write('\t')
+      out_file.write(splitter)
       write_list(out_file, feature.input_ids)
-      out_file.write('\t')
+      out_file.write(splitter)
       write_list(out_file, feature.input_mask)
-      out_file.write('\t')
+      out_file.write(splitter)
       write_list(out_file, feature.input_type_ids)
-      out_file.write('\t')
+      out_file.write(splitter)
       out_file.write(str(feature.label_id))
       out_file.write('\n')
     # tf_example = tf.train.Example(

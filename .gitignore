@@ -1,3 +1,5 @@
 *.pyc
+text/data/
+text/pretrained_models/
 *ckpt*
 *__pycache__*
